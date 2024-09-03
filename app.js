@@ -32,36 +32,50 @@ function displayContent(content, elementId) {
   // Horoscopes API
   async function getHoroscope() {
     try {
-      //const response = await fetch('https://viewbits.com/api/v1/horoscopes?mode=today&sign=aries');
-      const response = await fetch('https://us-central1-tiapiborger.cloudfunctions.net/tiApiBorger?type=horoscopes&mode=today&aries');
-      const data = await response.json();
-      displayContent(data[0].horoscope, 'horoscope');
+        const response = await fetch('https://us-central1-tiapiborger.cloudfunctions.net/tiScope');
+
+        // Get the content type
+        const contentType = response.headers.get("content-type");
+
+        if (contentType && contentType.includes("text/html")) {
+            const text = await response.text(); // Get the raw HTML text
+            console.log('Received HTML response:', text); // Log it for reference
+            displayContent(text, 'horoscope'); // Display the text in the horoscope element
+        } else if (contentType && contentType.includes("text/plain")) {
+            const text = await response.text(); // Get the plain text response
+            displayContent(text, 'horoscope'); // Display the text in the horoscope element
+        } else {
+            console.error('Unexpected response format:', contentType);
+            displayContent('Failed to fetch horoscope. Unexpected response format.', 'horoscope');
+        }
     } catch (error) {
-      console.error('Error fetching horoscope:', error);
-      displayContent('Failed to fetch horoscope. Please try again.', 'horoscope');
+        console.error('Error fetching Horoscope:', error);
+        displayContent('Failed to fetch Horoscope. Please try again.', 'horoscope');
     }
-  }
+}
+
+
+
   
-  async function getOnThisDay() {
-    try {
+async function getOnThisDay() {
+  try {
       const response = await fetch('https://us-central1-tiapiborger.cloudfunctions.net/tiApiBorger?type=onthisday&mode=today');
       const data = await response.json();
-  
-      const displayEvents = (events, limit = 5) => {
-          const limitedEvents = events.slice(0, limit); // Display only the first 5 events
-          limitedEvents.forEach(event => {
+
+      const displayEvents = (events) => {
+          events.forEach(event => {
               document.getElementById('onThisDay').innerHTML += `<p>${event.html}</p>`;
           });
       };
-  
+
       displayEvents(data.data.Events);
-  
-    } catch (error) {
+
+  } catch (error) {
       console.error('Error fetching On This Day:', error);
       displayContent('Failed to fetch On This Day. Please try again.', 'onThisDay');
-    }
   }
-  
+}
+
 
 async function getRandomFact2() {
     const url = 'https://facts-by-api-ninjas.p.rapidapi.com/v1/facts';
@@ -90,4 +104,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('getHoroscope').addEventListener('click', getHoroscope);
     document.getElementById('getOnThisDay').addEventListener('click', getOnThisDay);
     document.getElementById('getFact2').addEventListener('click', getRandomFact2);
+    getHoroscope();
+    getLifeHack();
+    //getOnThisDay();
+    getRandomFact();
+    getRandomFact2();
 });
